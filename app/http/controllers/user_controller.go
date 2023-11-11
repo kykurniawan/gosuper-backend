@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"gosuper/app/helpers"
+	"gosuper/app/http/requests"
 	"gosuper/app/http/responses"
 	"gosuper/app/services"
 	"strconv"
@@ -32,7 +33,13 @@ func (controller *UserController) Index(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Query param per_page is not valid!")
 	}
 
-	users, total, totalPage, err := controller.userService.GetAllPaginate(page, perPage)
+	users, err := controller.userService.GetAllPaginate(
+		&requests.IndexRequest{
+			Page:    page,
+			PerPage: perPage,
+			Search:  c.Query("search", ""),
+		},
+	)
 
 	if err != nil {
 		return err
@@ -57,10 +64,8 @@ func (controller *UserController) Index(c *fiber.Ctx) error {
 		"data": responses.UserIndexResponse{
 			Users: userResponse,
 			Meta: responses.PaginationMetaResponse{
-				Total:     total,
-				TotalPage: totalPage,
-				Page:      page,
-				PerPage:   perPage,
+				Page:    page,
+				PerPage: perPage,
 			},
 		},
 		"errors": nil,

@@ -2,7 +2,7 @@ package services
 
 import (
 	"database/sql"
-	"fmt"
+	"gosuper/app/http/requests"
 	"gosuper/app/models"
 	"gosuper/app/repositories"
 
@@ -33,8 +33,6 @@ func (service *UserService) CreateUser(
 		EmailVerifiedAt: sql.NullTime{},
 	}
 
-	fmt.Println(user, "user")
-
 	err := service.userRepository.Create(&user)
 
 	if err != nil {
@@ -54,6 +52,6 @@ func (service *UserService) IsEmailExists(email string) bool {
 	return err != gorm.ErrRecordNotFound
 }
 
-func (service *UserService) GetAllPaginate(page int, limit int) ([]*models.User, int, int, error) {
-	return service.userRepository.FindAllPaginate(page, limit)
+func (service *UserService) GetAllPaginate(request *requests.IndexRequest) ([]*models.User, error) {
+	return service.userRepository.FindAllPaginate(request.Page, request.PerPage, request.Search)
 }

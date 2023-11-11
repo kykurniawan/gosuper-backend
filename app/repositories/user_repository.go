@@ -64,26 +64,24 @@ func (repo *UserRepository) FindAll() ([]*models.User, error) {
 	return users, nil
 }
 
-func (repo *UserRepository) FindAllPaginate(page int, perPage int) ([]*models.User, int, int, error) {
+func (repo *UserRepository) FindAllPaginate(page int, perPage int, search string) ([]*models.User, error) {
 	var users []*models.User
-
-	var total int64
 
 	offset := (page - 1) * perPage
 
-	err := repo.Database.Model(&models.User{}).Count(&total).Error
+	query := repo.Database.Offset(offset).Limit(perPage)
 
-	if err != nil {
-		return nil, 0, 0, err
+	if search != "" {
+		query = query.Where("name LIKE ?", "%"+search+"%")
 	}
 
-	err = repo.Database.Offset(offset).Limit(perPage).Find(&users).Error
+	query = query.Find(&users)
+
+	err := query.Error
 
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, err
 	}
 
-	totalPage := int(total) / perPage
-
-	return users, int(total), totalPage, nil
+	return users, nil
 }
