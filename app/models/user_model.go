@@ -12,6 +12,7 @@ type User struct {
 	Email           string       `gorm:"type:varchar(255);unique;not null"`
 	EmailVerifiedAt sql.NullTime `gorm:"type:timestamp null"`
 	Password        string       `gorm:"type:varchar(255);not null"`
+	RefreshTokens   RefreshToken `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	CreatedAt       sql.NullTime `gorm:"autoCreateTime"`
 	UpdatedAt       sql.NullTime `gorm:"autoUpdateTime"`
 	DeletedAt       sql.NullTime `gorm:"index"`

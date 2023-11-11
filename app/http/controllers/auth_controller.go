@@ -20,10 +20,31 @@ func NewAuthController(authService *services.AuthService) *AuthController {
 }
 
 func (controller *AuthController) Login(c *fiber.Ctx) error {
+	c.Accepts("application/json")
+
+	loginRequest := new(requests.LoginRequest)
+
+	if err := c.BodyParser(loginRequest); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+	}
+
+	if err := loginRequest.Validate(); err != nil {
+		return exception.NewValidationError(err, loginRequest)
+	}
+
+	accessToken, refreshToken, err := controller.authService.Login(loginRequest)
+
+	if err != nil {
+		return err
+	}
+
 	return c.JSON(fiber.Map{
 		"message": "Login success!",
-		"data":    nil,
-		"errors":  nil,
+		"data": responses.LoginResponse{
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+		},
+		"errors": nil,
 	})
 }
 
