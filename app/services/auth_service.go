@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"gosuper/app/helpers"
 	"gosuper/app/http/requests"
 	"gosuper/app/libs/hash"
@@ -54,6 +55,22 @@ func (service *AuthService) Login(request *requests.LoginRequest) (string, strin
 
 }
 
+func (service *AuthService) Logout(request *requests.LogoutRequest) error {
+	refreshToken, err := service.refreshTokenRepository.FindByToken(request.RefreshToken)
+
+	if err != nil {
+		return err
+	}
+
+	err = service.refreshTokenRepository.DeleteAllByUserId(refreshToken.UserID.String())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (service *AuthService) Register(request *requests.RegisterRequest) (*models.User, error) {
 	if service.userService.IsEmailExists(request.Email) {
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Email already exists!")
@@ -96,7 +113,7 @@ func (service *AuthService) GenerateRefreshToken(user *models.User) (*models.Ref
 }
 
 func (service *AuthService) GenerateAccessToken(user *models.User) (string, error) {
-	expiresMilisecond, err := strconv.Atoi(os.Getenv("JWT_ACCESS_TOKEN_EXPIRES"))
+	expiresSecond, err := strconv.Atoi(os.Getenv("JWT_ACCESS_TOKEN_EXPIRES"))
 
 	if err != nil {
 		panic(err)
@@ -106,7 +123,7 @@ func (service *AuthService) GenerateAccessToken(user *models.User) (string, erro
 		"sub": user.ID.String(),
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
-		"exp": time.Now().Add(time.Microsecond * time.Duration(expiresMilisecond)).Unix(),
+		"exp": time.Now().Add(time.Second * time.Duration(expiresSecond)).Unix(),
 		"iss": "gosuper",
 		"aud": "gosuper",
 	})
@@ -118,4 +135,36 @@ func (service *AuthService) GenerateAccessToken(user *models.User) (string, erro
 	}
 
 	return tokenString, nil
+}
+
+func (service *AuthService) ValidateAccessToken(token string) (*models.User, error) {
+	jwtToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok { // Check signing method
+			return nil, errors.New("invalid token")
+		}
+
+		return []byte(os.Getenv("JWT_SECRET")), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := jwtToken.Claims.(jwt.MapClaims); ok && jwtToken.Valid {
+		userID, err := uuid.Parse(claims["sub"].(string))
+
+		if err != nil {
+			return nil, err
+		}
+
+		user, err := service.userService.GetById(userID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return user, nil
+	}
+
+	return nil, errors.New("invalid token")
 }

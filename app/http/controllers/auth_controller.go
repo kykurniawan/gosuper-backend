@@ -48,6 +48,30 @@ func (controller *AuthController) Login(c *fiber.Ctx) error {
 	})
 }
 
+func (controller *AuthController) Logout(c *fiber.Ctx) error {
+	c.Accepts("application/json")
+
+	logoutRequest := new(requests.LogoutRequest)
+
+	if err := c.BodyParser(logoutRequest); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+	}
+
+	if err := logoutRequest.Validate(); err != nil {
+		return exception.NewValidationError(err, logoutRequest)
+	}
+
+	if err := controller.authService.Logout(logoutRequest); err != nil {
+		return err
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Logout success!",
+		"data":    nil,
+		"errors":  nil,
+	})
+}
+
 func (controller *AuthController) Register(c *fiber.Ctx) error {
 	c.Accepts("application/json")
 
@@ -76,14 +100,6 @@ func (controller *AuthController) Register(c *fiber.Ctx) error {
 			CreatedAt: user.CreatedAt.Time,
 		},
 		"errors": nil,
-	})
-}
-
-func (controller *AuthController) Logout(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{
-		"message": "Logout success!",
-		"data":    nil,
-		"errors":  nil,
 	})
 }
 

@@ -2,6 +2,7 @@ package app
 
 import (
 	"gosuper/app/exception"
+	"gosuper/app/http/middlewares"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -41,11 +42,11 @@ func (app *App) Run() {
 
 	v1.Post("/auth/login", authController.Login).Name("auth.login")
 	v1.Post("/auth/register", authController.Register).Name("auth.register")
-	v1.Post("/auth/logout", authController.Logout).Name("auth.logout")
+	v1.Post("/auth/logout", middlewares.Authenticate(authService), authController.Logout).Name("auth.logout")
 	v1.Post("/auth/refresh", authController.Refresh).Name("auth.refresh")
-	v1.Get("/auth/user", authController.User).Name("auth.user")
+	v1.Get("/auth/user", middlewares.Authenticate(authService), authController.User).Name("auth.user")
 
-	v1.Get("/users", userController.Index).Name("users.index")
+	v1.Get("/users", middlewares.Authenticate(authService), userController.Index).Name("users.index")
 
 	err := app.Fiber.Listen(":" + os.Getenv("APP_PORT"))
 

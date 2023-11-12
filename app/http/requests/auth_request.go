@@ -13,6 +13,10 @@ type (
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required"`
 	}
+
+	LogoutRequest struct {
+		RefreshToken string `json:"refreshToken" validate:"required"`
+	}
 )
 
 func (request *RegisterRequest) Validate() []validator.FieldError {
@@ -34,6 +38,24 @@ func (request *RegisterRequest) Validate() []validator.FieldError {
 }
 
 func (request *LoginRequest) Validate() []validator.FieldError {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+
+	err := validate.Struct(request)
+
+	if err != nil {
+		var errors []validator.FieldError
+
+		for _, err := range err.(validator.ValidationErrors) {
+			errors = append(errors, err)
+		}
+
+		return errors
+	}
+
+	return nil
+}
+
+func (request *LogoutRequest) Validate() []validator.FieldError {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 
 	err := validate.Struct(request)

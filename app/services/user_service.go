@@ -46,6 +46,10 @@ func (service *UserService) GetByEmail(email string) (*models.User, error) {
 	return service.userRepository.FindByEmail(email)
 }
 
+func (service *UserService) GetById(id uuid.UUID) (*models.User, error) {
+	return service.userRepository.FindById(id.String())
+}
+
 func (service *UserService) IsEmailExists(email string) bool {
 	_, err := service.userRepository.FindByEmail(email)
 
