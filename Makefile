@@ -1,8 +1,12 @@
-run:
-	@go run cmd/main.go
-
 build:
 	@go build -o bin/gosuper cmd/main.go
+
+run-dev:
+	@go run cmd/main.go
+
+run-prod:
+	@go build -o bin/gosuper cmd/main.go
+	@bin/gosuper
 
 install-wire:
 	@GOBIN=bin go install github.com/google/wire/cmd/wire

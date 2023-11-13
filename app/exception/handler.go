@@ -14,16 +14,16 @@ func GlobalErrorHandler(c *fiber.Ctx, err error) error {
 		errors.As(err, &fiberError)
 
 		return c.Status(fiberError.Code).JSON(fiber.Map{
-			"message": e.Message,
+			"message": http.StatusText(fiberError.Code),
 			"data":    nil,
-			"error":   nil,
+			"error":   e.Error(),
 		})
 	case *ValidationError:
 		var validationError *ValidationError
 		errors.As(err, &validationError)
 
 		return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
-			"message": validationError.Error(),
+			"message": http.StatusText(http.StatusUnprocessableEntity),
 			"data":    nil,
 			"error": fiber.Map{
 				"fields": validationError.GetFieldErrors(),
@@ -32,9 +32,9 @@ func GlobalErrorHandler(c *fiber.Ctx, err error) error {
 		})
 	default:
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"message": e.Error(),
+			"message": http.StatusText(http.StatusInternalServerError),
 			"data":    nil,
-			"error":   nil,
+			"error":   e.Error(),
 		})
 	}
 }

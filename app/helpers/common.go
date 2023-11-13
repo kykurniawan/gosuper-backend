@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"math/rand"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
 
 func NilOrTIme(nullTime sql.NullTime) *time.Time {
@@ -24,4 +26,22 @@ func GenerateRandomString(length int) string {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+func ValidateStruct(data interface{}) []validator.FieldError {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+
+	err := validate.Struct(data)
+
+	if err != nil {
+		var errors []validator.FieldError
+
+		for _, err := range err.(validator.ValidationErrors) {
+			errors = append(errors, err)
+		}
+
+		return errors
+	}
+
+	return nil
 }

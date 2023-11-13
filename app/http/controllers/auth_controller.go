@@ -4,6 +4,7 @@ import (
 	"gosuper/app/exception"
 	"gosuper/app/http/requests"
 	"gosuper/app/http/responses"
+	"gosuper/app/models"
 	"gosuper/app/services"
 
 	"github.com/gofiber/fiber/v2"
@@ -104,16 +105,93 @@ func (controller *AuthController) Register(c *fiber.Ctx) error {
 }
 
 func (controller *AuthController) Refresh(c *fiber.Ctx) error {
+	c.Accepts("application/json")
+
+	refreshTokenRequest := new(requests.RefreshTokenRequest)
+
+	if err := c.BodyParser(refreshTokenRequest); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+	}
+
+	if err := refreshTokenRequest.Validate(); err != nil {
+		return exception.NewValidationError(err, refreshTokenRequest)
+	}
+
+	accessToken, refreshToken, err := controller.authService.RefreshToken(refreshTokenRequest)
+
+	if err != nil {
+		return err
+	}
+
 	return c.JSON(fiber.Map{
-		"message": "Refresh success!",
+		"message": "Refresh token success!",
+		"data": responses.RefreshTokenResponse{
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+		},
+		"errors": nil,
+	})
+}
+
+func (controller *AuthController) User(c *fiber.Ctx) error {
+	user := c.Locals("user").(*models.User)
+
+	loggedUser := responses.LoggedUserResponse{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Get user success!",
+		"data":    loggedUser,
+		"errors":  nil,
+	})
+}
+
+func (controller *AuthController) ForgotPassword(c *fiber.Ctx) error {
+	c.Accepts("application/json")
+
+	forgotPasswordRequest := new(requests.ForgotPasswordRequest)
+
+	if err := c.BodyParser(forgotPasswordRequest); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+	}
+
+	if err := forgotPasswordRequest.Validate(); err != nil {
+		return exception.NewValidationError(err, forgotPasswordRequest)
+	}
+
+	if err := controller.authService.ForgotPassword(forgotPasswordRequest); err != nil {
+		return err
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "We have sent you an otp to your email!",
 		"data":    nil,
 		"errors":  nil,
 	})
 }
 
-func (controller *AuthController) User(c *fiber.Ctx) error {
+func (controller *AuthController) ResetPassword(c *fiber.Ctx) error {
+	c.Accepts("application/json")
+
+	resetPasswordRequest := new(requests.ResetPasswordRequest)
+
+	if err := c.BodyParser(resetPasswordRequest); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+	}
+
+	if err := resetPasswordRequest.Validate(); err != nil {
+		return exception.NewValidationError(err, resetPasswordRequest)
+	}
+
+	if err := controller.authService.ResetPassword(resetPasswordRequest); err != nil {
+		return err
+	}
+
 	return c.JSON(fiber.Map{
-		"message": "Get user success!",
+		"message": "Reset password success!",
 		"data":    nil,
 		"errors":  nil,
 	})

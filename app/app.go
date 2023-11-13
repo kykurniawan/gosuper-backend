@@ -45,6 +45,8 @@ func (app *App) Run() {
 	v1.Post("/auth/logout", middlewares.Authenticate(authService), authController.Logout).Name("auth.logout")
 	v1.Post("/auth/refresh", authController.Refresh).Name("auth.refresh")
 	v1.Get("/auth/user", middlewares.Authenticate(authService), authController.User).Name("auth.user")
+	v1.Post("/auth/forgot-password", authController.ForgotPassword).Name("auth.forgot-password")
+	v1.Post("/auth/reset-password", authController.ResetPassword).Name("auth.reset-password")
 
 	v1.Get("/users", middlewares.Authenticate(authService), userController.Index).Name("users.index")
 

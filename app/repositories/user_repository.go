@@ -7,23 +7,23 @@ import (
 )
 
 type UserRepository struct {
-	Database *gorm.DB
+	db *gorm.DB
 }
 
 func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{
-		Database: db,
+		db: db,
 	}
 }
 
 func (repo *UserRepository) Create(user *models.User) error {
-	return repo.Database.Create(user).Error
+	return repo.db.Create(user).Error
 }
 
 func (repo *UserRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User
 
-	err := repo.Database.Where("email = ?", email).First(&user).Error
+	err := repo.db.Where("email = ?", email).First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (repo *UserRepository) FindByEmail(email string) (*models.User, error) {
 func (repo *UserRepository) FindById(id string) (*models.User, error) {
 	var user models.User
 
-	err := repo.Database.Where("id = ?", id).First(&user).Error
+	err := repo.db.Where("id = ?", id).First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -45,17 +45,17 @@ func (repo *UserRepository) FindById(id string) (*models.User, error) {
 }
 
 func (repo *UserRepository) Update(user *models.User) error {
-	return repo.Database.Save(user).Error
+	return repo.db.Save(user).Error
 }
 
 func (repo *UserRepository) Delete(user *models.User) error {
-	return repo.Database.Delete(user).Error
+	return repo.db.Delete(user).Error
 }
 
 func (repo *UserRepository) FindAll() ([]*models.User, error) {
 	var users []*models.User
 
-	err := repo.Database.Find(&users).Error
+	err := repo.db.Find(&users).Error
 
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (repo *UserRepository) FindAllPaginate(page int, perPage int, search string
 
 	offset := (page - 1) * perPage
 
-	query := repo.Database.Offset(offset).Limit(perPage)
+	query := repo.db.Offset(offset).Limit(perPage)
 
 	if search != "" {
 		query = query.Where("name LIKE ?", "%"+search+"%")

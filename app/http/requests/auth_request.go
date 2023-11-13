@@ -1,6 +1,10 @@
 package requests
 
-import "github.com/go-playground/validator/v10"
+import (
+	"gosuper/app/helpers"
+
+	"github.com/go-playground/validator/v10"
+)
 
 type (
 	RegisterRequest struct {
@@ -17,58 +21,41 @@ type (
 	LogoutRequest struct {
 		RefreshToken string `json:"refreshToken" validate:"required"`
 	}
+
+	RefreshTokenRequest struct {
+		RefreshToken string `json:"refreshToken" validate:"required"`
+	}
+
+	ForgotPasswordRequest struct {
+		Email string `json:"email" validate:"required,email"`
+	}
+
+	ResetPasswordRequest struct {
+		Otp      string `json:"otp" validate:"required"`
+		Password string `json:"password" validate:"required,min=8"`
+	}
 )
 
 func (request *RegisterRequest) Validate() []validator.FieldError {
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Struct(request)
-
-	if err != nil {
-		var errors []validator.FieldError
-
-		for _, err := range err.(validator.ValidationErrors) {
-			errors = append(errors, err)
-		}
-
-		return errors
-	}
-
-	return nil
+	return helpers.ValidateStruct(request)
 }
 
 func (request *LoginRequest) Validate() []validator.FieldError {
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	err := validate.Struct(request)
-
-	if err != nil {
-		var errors []validator.FieldError
-
-		for _, err := range err.(validator.ValidationErrors) {
-			errors = append(errors, err)
-		}
-
-		return errors
-	}
-
-	return nil
+	return helpers.ValidateStruct(request)
 }
 
 func (request *LogoutRequest) Validate() []validator.FieldError {
-	validate := validator.New(validator.WithRequiredStructEnabled())
+	return helpers.ValidateStruct(request)
+}
 
-	err := validate.Struct(request)
+func (request *RefreshTokenRequest) Validate() []validator.FieldError {
+	return helpers.ValidateStruct(request)
+}
 
-	if err != nil {
-		var errors []validator.FieldError
+func (request *ForgotPasswordRequest) Validate() []validator.FieldError {
+	return helpers.ValidateStruct(request)
+}
 
-		for _, err := range err.(validator.ValidationErrors) {
-			errors = append(errors, err)
-		}
-
-		return errors
-	}
-
-	return nil
+func (request *ResetPasswordRequest) Validate() []validator.FieldError {
+	return helpers.ValidateStruct(request)
 }

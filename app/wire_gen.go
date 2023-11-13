@@ -38,8 +38,10 @@ func InitializeUserService(db *gorm.DB) *services.UserService {
 
 func InitializeAuthService(db *gorm.DB) *services.AuthService {
 	userService := InitializeUserService(db)
+	otpService := InitializeOtpService(db)
+	mailService := InitializeMailService()
 	refreshTokenRepository := InitializeRefreshTokenRepository(db)
-	authService := services.NewAuthService(userService, refreshTokenRepository)
+	authService := services.NewAuthService(userService, otpService, mailService, refreshTokenRepository)
 	return authService
 }
 
@@ -51,4 +53,20 @@ func InitializeAuthController(authService *services.AuthService) *controllers.Au
 func InitializeUserController(userService *services.UserService) *controllers.UserController {
 	userController := controllers.NewUserController(userService)
 	return userController
+}
+
+func InitializeOtpRepository(db *gorm.DB) *repositories.OtpRepository {
+	otpRepository := repositories.NewOtpRepository(db)
+	return otpRepository
+}
+
+func InitializeOtpService(db *gorm.DB) *services.OtpService {
+	otpRepository := InitializeOtpRepository(db)
+	otpService := services.NewOtpService(otpRepository)
+	return otpService
+}
+
+func InitializeMailService() *services.MailService {
+	mailService := services.NewMailService()
+	return mailService
 }

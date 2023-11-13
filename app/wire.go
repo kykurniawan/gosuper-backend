@@ -41,6 +41,8 @@ func InitializeAuthService(db *gorm.DB) *services.AuthService {
 	panic(wire.Build(
 		services.NewAuthService,
 		InitializeUserService,
+		InitializeOtpService,
+		InitializeMailService,
 		InitializeRefreshTokenRepository,
 	))
 }
@@ -54,5 +56,24 @@ func InitializeAuthController(authService *services.AuthService) *controllers.Au
 func InitializeUserController(userService *services.UserService) *controllers.UserController {
 	panic(wire.Build(
 		controllers.NewUserController,
+	))
+}
+
+func InitializeOtpRepository(db *gorm.DB) *repositories.OtpRepository {
+	panic(wire.Build(
+		repositories.NewOtpRepository,
+	))
+}
+
+func InitializeOtpService(db *gorm.DB) *services.OtpService {
+	panic(wire.Build(
+		services.NewOtpService,
+		InitializeOtpRepository,
+	))
+}
+
+func InitializeMailService() *services.MailService {
+	panic(wire.Build(
+		services.NewMailService,
 	))
 }
