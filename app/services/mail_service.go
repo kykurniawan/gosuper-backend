@@ -2,10 +2,9 @@ package services
 
 import (
 	"bytes"
-	"crypto/tls"
+	"gosuper/app/integrations/mail"
 	"html/template"
 	"os"
-	"strconv"
 
 	"gopkg.in/gomail.v2"
 )
@@ -15,19 +14,8 @@ type MailService struct {
 }
 
 func NewMailService() *MailService {
-	host := os.Getenv("MAIL_HOST")
-	port, err := strconv.Atoi(os.Getenv("MAIL_PORT"))
-	if err != nil {
-		panic(err)
-	}
-	username := os.Getenv("MAIL_USERNAME")
-	password := os.Getenv("MAIL_PASSWORD")
-
-	dialer := gomail.NewDialer(host, port, username, password)
-	dialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
 	return &MailService{
-		dialer: dialer,
+		dialer: mail.CreateDialer(),
 	}
 }
 

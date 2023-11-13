@@ -3,6 +3,7 @@ package app
 import (
 	"gosuper/app/exception"
 	"gosuper/app/http/middlewares"
+	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -30,15 +31,23 @@ func NewApp(db *gorm.DB) *App {
 }
 
 func (app *App) Run() {
+	app.registerRoutes(app.Fiber.Group("/api"))
+
+	err := app.Fiber.Listen(":" + os.Getenv("APP_PORT"))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (app *App) registerRoutes(api fiber.Router) {
 	authService := InitializeAuthService(app.Database)
 	userService := InitializeUserService(app.Database)
 
 	authController := InitializeAuthController(authService)
 	userController := InitializeUserController(userService)
 
-	api := app.Fiber.Group("/api")
-
-	v1 := api.Group("/v1")
+	v1 := api.Group("/v1").Name("v1.")
 
 	v1.Post("/auth/login", authController.Login).Name("auth.login")
 	v1.Post("/auth/register", authController.Register).Name("auth.register")
@@ -49,10 +58,4 @@ func (app *App) Run() {
 	v1.Post("/auth/reset-password", authController.ResetPassword).Name("auth.reset-password")
 
 	v1.Get("/users", middlewares.Authenticate(authService), userController.Index).Name("users.index")
-
-	err := app.Fiber.Listen(":" + os.Getenv("APP_PORT"))
-
-	if err != nil {
-		panic(err)
-	}
 }

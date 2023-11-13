@@ -2,23 +2,28 @@ package main
 
 import (
 	"gosuper/app"
+	"gosuper/app/integrations/database"
 	"log"
 
 	"github.com/joho/godotenv"
+	"gorm.io/gorm"
 )
 
-func init() {
-	godotenv.Load()
-}
+var db *gorm.DB
 
-func main() {
-	db, err := app.ConnectDatabase()
+func init() {
+	var err error
+
+	godotenv.Load()
+
+	db, err = database.ConnectDatabase()
 
 	if err != nil {
 		log.Fatal(err)
 	}
+}
 
+func main() {
 	app := app.InitializeApp(db)
-
 	app.Run()
 }
