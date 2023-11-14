@@ -3,8 +3,8 @@ package app
 import (
 	"gosuper/app/exception"
 	"gosuper/app/http/middlewares"
+	"gosuper/config"
 	"log"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -33,7 +33,7 @@ func NewApp(db *gorm.DB) *App {
 func (app *App) Run() {
 	app.registerRoutes(app.Fiber.Group("/api"))
 
-	err := app.Fiber.Listen(":" + os.Getenv("APP_PORT"))
+	err := app.Fiber.Listen(":" + config.App.Port)
 
 	if err != nil {
 		log.Fatal(err)

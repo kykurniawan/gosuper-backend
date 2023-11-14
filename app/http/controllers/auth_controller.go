@@ -6,6 +6,7 @@ import (
 	"gosuper/app/http/responses"
 	"gosuper/app/models"
 	"gosuper/app/services"
+	"gosuper/config"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -41,9 +42,11 @@ func (controller *AuthController) Login(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"message": "Login success!",
-		"data": responses.LoginResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
+		"data": responses.TokenResponse{
+			AccessToken:           accessToken,
+			AccessTokenExpiresIn:  config.Token.AccessTokenExpiresIn,
+			RefreshToken:          refreshToken,
+			RefreshTokenExpiresIn: config.Token.RefeshTokenExpiresIn,
 		},
 		"errors": nil,
 	})
@@ -125,9 +128,11 @@ func (controller *AuthController) Refresh(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"message": "Refresh token success!",
-		"data": responses.RefreshTokenResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
+		"data": responses.TokenResponse{
+			AccessToken:           accessToken,
+			AccessTokenExpiresIn:  config.Token.AccessTokenExpiresIn,
+			RefreshToken:          refreshToken,
+			RefreshTokenExpiresIn: config.Token.RefeshTokenExpiresIn,
 		},
 		"errors": nil,
 	})

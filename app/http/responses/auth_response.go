@@ -14,14 +14,11 @@ type (
 		CreatedAt time.Time `json:"createdAt"`
 	}
 
-	LoginResponse struct {
-		AccessToken  string `json:"accessToken"`
-		RefreshToken string `json:"refreshToken"`
-	}
-
-	RefreshTokenResponse struct {
-		AccessToken  string `json:"accessToken"`
-		RefreshToken string `json:"refreshToken"`
+	TokenResponse struct {
+		AccessToken           string `json:"accessToken"`
+		AccessTokenExpiresIn  int    `json:"accessTokenExpiresIn"`
+		RefreshToken          string `json:"refreshToken"`
+		RefreshTokenExpiresIn int    `json:"refreshTokenExpiresIn"`
 	}
 
 	LoggedUserResponse struct {

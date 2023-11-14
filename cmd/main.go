@@ -3,9 +3,9 @@ package main
 import (
 	"gosuper/app"
 	"gosuper/app/integrations/database"
+	"gosuper/config"
 	"log"
 
-	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
@@ -14,9 +14,13 @@ var db *gorm.DB
 func init() {
 	var err error
 
-	godotenv.Load()
+	err = config.LoadConfig()
 
-	db, err = database.ConnectDatabase()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db, err = database.CreateConnection()
 
 	if err != nil {
 		log.Fatal(err)

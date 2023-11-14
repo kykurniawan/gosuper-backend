@@ -2,22 +2,16 @@ package redis
 
 import (
 	"fmt"
-	"os"
-	"strconv"
+	"gosuper/config"
 
 	"github.com/redis/go-redis/v9"
 )
 
 func CreateClient() *redis.Client {
-	db, err := strconv.Atoi(os.Getenv("REDIS_DB"))
-
-	if err != nil {
-		panic(err)
-	}
 	client := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
-		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       db,
+		Addr:     fmt.Sprintf("%s:%s", config.Redis.Host, config.Redis.Port),
+		Password: config.Redis.Password,
+		DB:       config.Redis.Db,
 		Protocol: 3,
 	})
 

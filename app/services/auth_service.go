@@ -8,9 +8,8 @@ import (
 	"gosuper/app/libs/hash"
 	"gosuper/app/models"
 	"gosuper/app/repositories"
+	"gosuper/config"
 	"gosuper/resources"
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -141,11 +140,7 @@ func (service *AuthService) Register(request *requests.RegisterRequest) (*models
 }
 
 func (service *AuthService) GenerateRefreshToken(user *models.User) (*models.RefreshToken, error) {
-	expiresSecond, err := strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXPIRES"))
-
-	if err != nil {
-		panic(err)
-	}
+	expiresSecond := config.Token.RefeshTokenExpiresIn
 
 	userRefreshTokens, err := service.refreshTokenRepository.FindByUserId(user.ID.String())
 
@@ -176,11 +171,7 @@ func (service *AuthService) GenerateRefreshToken(user *models.User) (*models.Ref
 }
 
 func (service *AuthService) GenerateAccessToken(user *models.User) (string, error) {
-	expiresSecond, err := strconv.Atoi(os.Getenv("ACCESS_TOKEN_EXPIRES"))
-
-	if err != nil {
-		panic(err)
-	}
+	expiresSecond := config.Token.AccessTokenExpiresIn
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID.String(),
@@ -191,7 +182,7 @@ func (service *AuthService) GenerateAccessToken(user *models.User) (string, erro
 		"aud": "gosuper",
 	})
 
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	tokenString, err := token.SignedString([]byte(config.App.Key))
 
 	if err != nil {
 		return "", err
@@ -206,7 +197,7 @@ func (service *AuthService) ValidateAccessToken(token string) (*models.User, err
 			return nil, errors.New("invalid token")
 		}
 
-		return []byte(os.Getenv("JWT_SECRET")), nil
+		return []byte(config.App.Key), nil
 	})
 
 	if err != nil {
@@ -304,7 +295,7 @@ func (service *AuthService) ResetPassword(request *requests.ResetPasswordRequest
 		Name:    user.Name,
 		Subject: subject,
 		Time:    time.Now().Format("02 Jan 2006 15:04:05"),
-		Email:   os.Getenv("MAIL_REPLY_TO"),
+		Email:   config.Mail.ReplyTo,
 	}
 
 	err = service.mailService.SendMail(user.Email, subject, resources.PasswordChangedNotificationTemplate, data)

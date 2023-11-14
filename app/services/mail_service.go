@@ -3,8 +3,8 @@ package services
 import (
 	"bytes"
 	"gosuper/app/integrations/mail"
+	"gosuper/config"
 	"html/template"
-	"os"
 
 	"gopkg.in/gomail.v2"
 )
@@ -41,9 +41,9 @@ func (service *MailService) SendMail(
 
 	mail := gomail.NewMessage()
 
-	mail.SetHeader("From", os.Getenv("MAIL_FROM"))
+	mail.SetHeader("From", config.Mail.MailFrom)
 	mail.SetHeader("To", to)
-	mail.SetHeader("Reply-To", os.Getenv("MAIL_REPLY_TO"))
+	mail.SetHeader("Reply-To", config.Mail.ReplyTo)
 	mail.SetHeader("Subject", subject)
 	mail.SetBody("text/html", html)
 
