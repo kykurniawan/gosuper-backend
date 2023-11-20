@@ -7,16 +7,18 @@
 package app
 
 import (
+	"github.com/rabbitmq/amqp091-go"
 	"gorm.io/gorm"
 	"gosuper/app/http/controllers"
+	"gosuper/app/libs/queue"
 	"gosuper/app/repositories"
 	"gosuper/app/services"
 )
 
 // Injectors from wire.go:
 
-func InitializeApp(db *gorm.DB) *App {
-	app := NewApp(db)
+func InitializeApp(db *gorm.DB, amqp *amqp091.Connection) *App {
+	app := NewApp(db, amqp)
 	return app
 }
 
@@ -36,12 +38,13 @@ func InitializeUserService(db *gorm.DB) *services.UserService {
 	return userService
 }
 
-func InitializeAuthService(db *gorm.DB) *services.AuthService {
+func InitializeAuthService(db *gorm.DB, amqp *amqp091.Connection) *services.AuthService {
 	userService := InitializeUserService(db)
 	otpService := InitializeOtpService(db)
 	mailService := InitializeMailService()
 	refreshTokenRepository := InitializeRefreshTokenRepository(db)
-	authService := services.NewAuthService(userService, otpService, mailService, refreshTokenRepository)
+	queue := InitializeQueue(amqp)
+	authService := services.NewAuthService(userService, otpService, mailService, refreshTokenRepository, queue)
 	return authService
 }
 
@@ -69,4 +72,9 @@ func InitializeOtpService(db *gorm.DB) *services.OtpService {
 func InitializeMailService() *services.MailService {
 	mailService := services.NewMailService()
 	return mailService
+}
+
+func InitializeQueue(amqp *amqp091.Connection) *queue.Queue {
+	queueQueue := queue.NewQueue(amqp)
+	return queueQueue
 }

@@ -5,14 +5,16 @@ package app
 
 import (
 	"gosuper/app/http/controllers"
+	"gosuper/app/libs/queue"
 	"gosuper/app/repositories"
 	"gosuper/app/services"
 
 	"github.com/google/wire"
+	"github.com/rabbitmq/amqp091-go"
 	"gorm.io/gorm"
 )
 
-func InitializeApp(db *gorm.DB) *App {
+func InitializeApp(db *gorm.DB, amqp *amqp091.Connection) *App {
 	panic(wire.Build(
 		NewApp,
 	))
@@ -37,13 +39,14 @@ func InitializeUserService(db *gorm.DB) *services.UserService {
 	))
 }
 
-func InitializeAuthService(db *gorm.DB) *services.AuthService {
+func InitializeAuthService(db *gorm.DB, amqp *amqp091.Connection) *services.AuthService {
 	panic(wire.Build(
 		services.NewAuthService,
 		InitializeUserService,
 		InitializeOtpService,
 		InitializeMailService,
 		InitializeRefreshTokenRepository,
+		InitializeQueue,
 	))
 }
 
@@ -75,5 +78,11 @@ func InitializeOtpService(db *gorm.DB) *services.OtpService {
 func InitializeMailService() *services.MailService {
 	panic(wire.Build(
 		services.NewMailService,
+	))
+}
+
+func InitializeQueue(amqp *amqp091.Connection) *queue.Queue {
+	panic(wire.Build(
+		queue.NewQueue,
 	))
 }

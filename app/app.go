@@ -1,22 +1,26 @@
 package app
 
 import (
+	"context"
 	"gosuper/app/exception"
 	"gosuper/app/http/middlewares"
+	"gosuper/app/libs/queue/consumers"
 	"gosuper/config"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/rabbitmq/amqp091-go"
 	"gorm.io/gorm"
 )
 
 type App struct {
 	Fiber    *fiber.App
 	Database *gorm.DB
+	Amqp     *amqp091.Connection
 }
 
-func NewApp(db *gorm.DB) *App {
+func NewApp(db *gorm.DB, amqp *amqp091.Connection) *App {
 	fiber := fiber.New(fiber.Config{
 		EnablePrintRoutes: true,
 		ErrorHandler:      exception.GlobalErrorHandler,
@@ -27,10 +31,12 @@ func NewApp(db *gorm.DB) *App {
 	return &App{
 		Fiber:    fiber,
 		Database: db,
+		Amqp:     amqp,
 	}
 }
 
 func (app *App) Run() {
+	app.runQueueWorker()
 	app.registerRoutes(app.Fiber.Group("/api"))
 
 	err := app.Fiber.Listen(":" + config.App.Port)
@@ -41,7 +47,7 @@ func (app *App) Run() {
 }
 
 func (app *App) registerRoutes(api fiber.Router) {
-	authService := InitializeAuthService(app.Database)
+	authService := InitializeAuthService(app.Database, app.Amqp)
 	userService := InitializeUserService(app.Database)
 
 	authController := InitializeAuthController(authService)
@@ -58,4 +64,13 @@ func (app *App) registerRoutes(api fiber.Router) {
 	v1.Post("/auth/reset-password", authController.ResetPassword).Name("auth.reset-password")
 
 	v1.Get("/users", middlewares.Authenticate(authService), userController.Index).Name("users.index")
+}
+
+func (app *App) runQueueWorker() {
+	mailService := InitializeMailService()
+
+	ctx := context.Background()
+	q := InitializeQueue(app.Amqp)
+	q.RegisterConsumer(consumers.NewSendEmailQueueConsumer(mailService))
+	q.Run(ctx)
 }

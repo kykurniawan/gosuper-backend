@@ -6,6 +6,7 @@ import (
 	"gosuper/app/helpers"
 	"gosuper/app/http/requests"
 	"gosuper/app/libs/hash"
+	"gosuper/app/libs/queue"
 	"gosuper/app/models"
 	"gosuper/app/repositories"
 	"gosuper/config"
@@ -22,6 +23,7 @@ type AuthService struct {
 	otpService             *OtpService
 	mailService            *MailService
 	refreshTokenRepository *repositories.RefreshTokenRepository
+	queue                  *queue.Queue
 }
 
 func NewAuthService(
@@ -29,12 +31,14 @@ func NewAuthService(
 	otpService *OtpService,
 	mailService *MailService,
 	refreshTokenRepository *repositories.RefreshTokenRepository,
+	queue *queue.Queue,
 ) *AuthService {
 	return &AuthService{
 		userService:            userService,
 		otpService:             otpService,
 		mailService:            mailService,
 		refreshTokenRepository: refreshTokenRepository,
+		queue:                  queue,
 	}
 }
 
@@ -236,19 +240,26 @@ func (service *AuthService) ForgotPassword(request *requests.ForgotPasswordReque
 		return err
 	}
 
-	subject := "Reset Password OTP"
-
-	data := struct {
-		Name    string
-		Otp     string
-		Subject string
-	}{
-		Name:    user.Name,
-		Otp:     otp,
-		Subject: subject,
+	if err != nil {
+		return err
 	}
 
-	err = service.mailService.SendMail(user.Email, subject, resources.ResetPasswordOtpTemplate, data)
+	queue := queue.SendEmailQueue{
+		Email:        user.Email,
+		Subject:      "Reset Password OTP",
+		MailTemplate: resources.ResetPasswordOtpTemplate,
+		Data: struct {
+			Name    string
+			Otp     string
+			Subject string
+		}{
+			Name:    user.Name,
+			Otp:     otp,
+			Subject: "Reset Password OTP",
+		},
+	}
+
+	err = service.queue.Publish(config.Queue.Mail.RoutingKey, queue)
 
 	if err != nil {
 		return err
@@ -284,21 +295,24 @@ func (service *AuthService) ResetPassword(request *requests.ResetPasswordRequest
 		return err
 	}
 
-	subject := "Reset Password Success"
-
-	data := struct {
-		Name    string
-		Subject string
-		Time    string
-		Email   string
-	}{
-		Name:    user.Name,
-		Subject: subject,
-		Time:    time.Now().Format("02 Jan 2006 15:04:05"),
-		Email:   config.Mail.ReplyTo,
+	queue := queue.SendEmailQueue{
+		Email:        user.Email,
+		Subject:      "Reset Password Success",
+		MailTemplate: resources.PasswordChangedNotificationTemplate,
+		Data: struct {
+			Name    string
+			Subject string
+			Time    string
+			Email   string
+		}{
+			Name:    user.Name,
+			Subject: "Reset Password Success",
+			Time:    time.Now().Format("02 Jan 2006 15:04:05"),
+			Email:   config.Mail.ReplyTo,
+		},
 	}
 
-	err = service.mailService.SendMail(user.Email, subject, resources.PasswordChangedNotificationTemplate, data)
+	err = service.queue.Publish(config.Queue.Mail.RoutingKey, queue)
 
 	if err != nil {
 		return err

@@ -5,41 +5,54 @@ import (
 )
 
 type AppConfig struct {
-	Key  string `mapstructure:"APP_KEY"`
-	Port string `mapstructure:"APP_PORT"`
+	Key  string
+	Port string
 }
 
 type DatabaseConfig struct {
-	Host     string `mapstructure:"DB_HOST"`
-	Port     string `mapstructure:"DB_PORT"`
-	Username string `mapstructure:"DB_USERNAME"`
-	Password string `mapstructure:"DB_PASSWORD"`
-	Database string `mapstructure:"DB_DATABASE"`
+	Host     string
+	Port     string
+	Username string
+	Password string
+	Database string
 }
 
 type RedisConfig struct {
-	Host     string `mapstructure:"REDIS_HOST"`
-	Port     string `mapstructure:"REDIS_PORT"`
-	Password string `mapstructure:"REDIS_PASSWORD"`
-	Db       int    `mapstructure:"REDIS_DB"`
+	Host     string
+	Port     string
+	Password string
+	Db       int
 }
 
 type MailConfig struct {
-	Host     string `mapstructure:"MAIL_HOST"`
-	Port     int    `mapstructure:"MAIL_PORT"`
-	Username string `mapstructure:"MAIL_USERNAME"`
-	Password string `mapstructure:"MAIL_PASSWORD"`
-	MailFrom string `mapstructure:"MAIL_FROM"`
-	ReplyTo  string `mapstructure:"MAIL_REPLY_TO"`
+	Host     string
+	Port     int
+	Username string
+	Password string
+	MailFrom string
+	ReplyTo  string
 }
 
 type JwtConfig struct {
-	Secret string `mapstructure:"JWT_SECRET"`
+	Secret string
 }
 
 type TokenConfig struct {
-	AccessTokenExpiresIn int `mapstructure:"ACCESS_TOKEN_EXPIRES_IN"`
-	RefeshTokenExpiresIn int `mapstructure:"REFRESH_TOKEN_EXPIRES_IN"`
+	AccessTokenExpiresIn int
+	RefeshTokenExpiresIn int
+}
+
+type RabbitMQConfig struct {
+	Dsn string
+}
+
+type QueueConfig struct {
+	Exchange string
+	Mail     struct {
+		QueueName    string
+		RoutingKey   string
+		ConsumerName string
+	}
 }
 
 var App *AppConfig
@@ -48,6 +61,8 @@ var Redis *RedisConfig
 var Mail *MailConfig
 var Jwt *JwtConfig
 var Token *TokenConfig
+var RabbitMQ *RabbitMQConfig
+var Queue *QueueConfig
 
 func LoadConfig() error {
 	viper.AddConfigPath("../")
@@ -61,16 +76,46 @@ func LoadConfig() error {
 		return err
 	}
 
-	return unmarshal(&App, &Db, &Redis, &Mail, &Jwt, &Token)
-}
+	App = &AppConfig{}
+	App.Port = viper.GetString("APP_PORT")
+	App.Key = viper.GetString("APP_KEY")
 
-func unmarshal(configs ...interface{}) error {
-	for _, config := range configs {
-		err := viper.Unmarshal(config)
-		if err != nil {
-			return err
-		}
-	}
+	Db = &DatabaseConfig{}
+	Db.Host = viper.GetString("DB_HOST")
+	Db.Port = viper.GetString("DB_PORT")
+	Db.Username = viper.GetString("DB_USERNAME")
+	Db.Password = viper.GetString("DB_PASSWORD")
+	Db.Database = viper.GetString("DB_DATABASE")
+
+	Redis = &RedisConfig{}
+	Redis.Password = viper.GetString("REDIS_PASSWORD")
+	Redis.Host = viper.GetString("REDIS_HOST")
+	Redis.Port = viper.GetString("REDIS_PORT")
+	Redis.Db = viper.GetInt("REDIS_DB")
+
+	Mail = &MailConfig{}
+	Mail.Host = viper.GetString("MAIL_HOST")
+	Mail.Port = viper.GetInt("MAIL_PORT")
+	Mail.Username = viper.GetString("MAIL_USERNAME")
+	Mail.Password = viper.GetString("MAIL_PASSWORD")
+	Mail.MailFrom = viper.GetString("MAIL_FROM")
+	Mail.ReplyTo = viper.GetString("MAIL_REPLY_TO")
+
+	Jwt = &JwtConfig{}
+	Jwt.Secret = App.Key
+
+	Token = &TokenConfig{}
+	Token.AccessTokenExpiresIn = viper.GetInt("ACCESS_TOKEN_EXPIRES_IN")
+	Token.RefeshTokenExpiresIn = viper.GetInt("REFRESH_TOKEN_EXPIRES_IN")
+
+	RabbitMQ = &RabbitMQConfig{}
+	RabbitMQ.Dsn = viper.GetString("RABBITMQ_DSN")
+
+	Queue = &QueueConfig{}
+	Queue.Exchange = viper.GetString("QUEUE_EXCHANGE")
+	Queue.Mail.QueueName = "mail-queue"
+	Queue.Mail.RoutingKey = "mail-routing-key"
+	Queue.Mail.ConsumerName = "mail-consumer"
 
 	return nil
 }
