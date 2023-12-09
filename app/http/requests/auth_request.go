@@ -6,56 +6,42 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type (
-	RegisterRequest struct {
-		Name     string `json:"name" validate:"required"`
-		Email    string `json:"email" validate:"required,email"`
-		Password string `json:"password" validate:"required,min=8"`
-	}
+type BaseRequest struct{}
 
-	LoginRequest struct {
-		Email    string `json:"email" validate:"required,email"`
-		Password string `json:"password" validate:"required"`
-	}
-
-	LogoutRequest struct {
-		RefreshToken string `json:"refreshToken" validate:"required"`
-	}
-
-	RefreshTokenRequest struct {
-		RefreshToken string `json:"refreshToken" validate:"required"`
-	}
-
-	ForgotPasswordRequest struct {
-		Email string `json:"email" validate:"required,email"`
-	}
-
-	ResetPasswordRequest struct {
-		Otp      string `json:"otp" validate:"required"`
-		Password string `json:"password" validate:"required,min=8"`
-	}
-)
-
-func (request *RegisterRequest) Validate() []validator.FieldError {
-	return helpers.ValidateStruct(request)
+func (base *BaseRequest) Validate() []validator.FieldError {
+	return helpers.ValidateStruct(base)
 }
 
-func (request *LoginRequest) Validate() []validator.FieldError {
-	return helpers.ValidateStruct(request)
+type RegisterRequest struct {
+	BaseRequest
+	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8"`
 }
 
-func (request *LogoutRequest) Validate() []validator.FieldError {
-	return helpers.ValidateStruct(request)
+type LoginRequest struct {
+	BaseRequest
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
 
-func (request *RefreshTokenRequest) Validate() []validator.FieldError {
-	return helpers.ValidateStruct(request)
+type LogoutRequest struct {
+	BaseRequest
+	RefreshToken string `json:"refreshToken" validate:"required"`
 }
 
-func (request *ForgotPasswordRequest) Validate() []validator.FieldError {
-	return helpers.ValidateStruct(request)
+type RefreshTokenRequest struct {
+	BaseRequest
+	RefreshToken string `json:"refreshToken" validate:"required"`
 }
 
-func (request *ResetPasswordRequest) Validate() []validator.FieldError {
-	return helpers.ValidateStruct(request)
+type ForgotPasswordRequest struct {
+	BaseRequest
+	Email string `json:"email" validate:"required,email"`
+}
+
+type ResetPasswordRequest struct {
+	BaseRequest
+	Otp      string `json:"otp" validate:"required"`
+	Password string `json:"password" validate:"required,min=8"`
 }

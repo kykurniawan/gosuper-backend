@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gosuper/app/constants"
 	"gosuper/app/exception"
 	"gosuper/app/http/requests"
 	"gosuper/app/http/responses"
@@ -22,12 +23,12 @@ func NewAuthController(authService *services.AuthService) *AuthController {
 }
 
 func (controller *AuthController) Login(c *fiber.Ctx) error {
-	c.Accepts("application/json")
+	c.Accepts(constants.JsonContentType)
 
 	loginRequest := new(requests.LoginRequest)
 
 	if err := c.BodyParser(loginRequest); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+		return fiber.NewError(fiber.StatusBadRequest, constants.ErrorRequestBodyNotValid)
 	}
 
 	if err := loginRequest.Validate(); err != nil {
@@ -53,12 +54,12 @@ func (controller *AuthController) Login(c *fiber.Ctx) error {
 }
 
 func (controller *AuthController) Logout(c *fiber.Ctx) error {
-	c.Accepts("application/json")
+	c.Accepts(constants.JsonContentType)
 
 	logoutRequest := new(requests.LogoutRequest)
 
 	if err := c.BodyParser(logoutRequest); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+		return fiber.NewError(fiber.StatusBadRequest, constants.ErrorRequestBodyNotValid)
 	}
 
 	if err := logoutRequest.Validate(); err != nil {
@@ -77,12 +78,12 @@ func (controller *AuthController) Logout(c *fiber.Ctx) error {
 }
 
 func (controller *AuthController) Register(c *fiber.Ctx) error {
-	c.Accepts("application/json")
+	c.Accepts()
 
 	registerRequest := new(requests.RegisterRequest)
 
 	if err := c.BodyParser(registerRequest); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+		return fiber.NewError(fiber.StatusBadRequest, constants.ErrorRequestBodyNotValid)
 	}
 
 	if err := registerRequest.Validate(); err != nil {
@@ -108,12 +109,12 @@ func (controller *AuthController) Register(c *fiber.Ctx) error {
 }
 
 func (controller *AuthController) Refresh(c *fiber.Ctx) error {
-	c.Accepts("application/json")
+	c.Accepts(constants.JsonContentType)
 
 	refreshTokenRequest := new(requests.RefreshTokenRequest)
 
 	if err := c.BodyParser(refreshTokenRequest); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+		return fiber.NewError(fiber.StatusBadRequest, constants.ErrorRequestBodyNotValid)
 	}
 
 	if err := refreshTokenRequest.Validate(); err != nil {
@@ -155,12 +156,12 @@ func (controller *AuthController) User(c *fiber.Ctx) error {
 }
 
 func (controller *AuthController) ForgotPassword(c *fiber.Ctx) error {
-	c.Accepts("application/json")
+	c.Accepts(constants.JsonContentType)
 
 	forgotPasswordRequest := new(requests.ForgotPasswordRequest)
 
 	if err := c.BodyParser(forgotPasswordRequest); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+		return fiber.NewError(fiber.StatusBadRequest, constants.ErrorRequestBodyNotValid)
 	}
 
 	if err := forgotPasswordRequest.Validate(); err != nil {
@@ -179,12 +180,12 @@ func (controller *AuthController) ForgotPassword(c *fiber.Ctx) error {
 }
 
 func (controller *AuthController) ResetPassword(c *fiber.Ctx) error {
-	c.Accepts("application/json")
+	c.Accepts(constants.JsonContentType)
 
 	resetPasswordRequest := new(requests.ResetPasswordRequest)
 
 	if err := c.BodyParser(resetPasswordRequest); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Request body is not valid!")
+		return fiber.NewError(fiber.StatusBadRequest, constants.ErrorRequestBodyNotValid)
 	}
 
 	if err := resetPasswordRequest.Validate(); err != nil {
