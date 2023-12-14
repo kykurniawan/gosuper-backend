@@ -13,4 +13,7 @@ var (
 
 	//go:embed mail_templates/email_verification_otp.html
 	EmailVerificationOtpTemplate string
+
+	//go:embed mail_templates/_header.html
+	EmailHeaderTemplate string
 )

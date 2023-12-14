@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"gosuper/app/integrations/mail"
 	"gosuper/config"
+	"gosuper/resources"
 	"html/template"
 
 	"gopkg.in/gomail.v2"
@@ -24,7 +25,7 @@ func (service *MailService) SendMail(
 	subject string, mailTemplate string,
 	data interface{},
 ) error {
-	template, err := template.New("mail").Parse(mailTemplate)
+	template, err := template.New("mail").Parse(mailTemplate + resources.EmailHeaderTemplate)
 	if err != nil {
 		return err
 	}
