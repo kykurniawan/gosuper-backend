@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"errors"
 	"gosuper/app/constants"
 	"gosuper/app/helpers"
@@ -295,6 +296,12 @@ func (service *AuthService) ResetPassword(request *requests.ResetPasswordRequest
 		return err
 	}
 
+	err = service.otpService.DeleteOtp(otp)
+
+	if err != nil {
+		return err
+	}
+
 	queue := queue.SendEmailQueue{
 		Email:        user.Email,
 		Subject:      "Reset Password Success",
@@ -319,4 +326,68 @@ func (service *AuthService) ResetPassword(request *requests.ResetPasswordRequest
 	}
 
 	return nil
+}
+
+func (service *AuthService) ResendEmailVerification(user *models.User) error {
+	otp, err := service.otpService.GenerateOtp(user.ID, constants.EmailVerificationOtp, time.Minute*60)
+
+	if err != nil {
+		return err
+	}
+
+	queue := queue.SendEmailQueue{
+		Email:        user.Email,
+		Subject:      "Email Verification OTP",
+		MailTemplate: resources.EmailVerificationOtpTemplate,
+		Data: struct {
+			Name    string
+			Otp     string
+			Subject string
+		}{
+			Name:    user.Name,
+			Otp:     otp,
+			Subject: "Email Verification OTP",
+		},
+	}
+
+	err = service.queue.Publish(config.Queue.Mail.RoutingKey, queue)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *AuthService) VerifyEmail(request *requests.VerifyEmailRequest) (*models.User, error) {
+	otp, err := service.otpService.ValidateOtp(constants.EmailVerificationOtp, request.Otp)
+
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid OTP")
+	}
+
+	user, err := service.userService.GetById(otp.UserID)
+
+	if err != nil {
+		return nil, fiber.NewError(fiber.StatusBadRequest, "User not found")
+	}
+
+	user.EmailVerifiedAt = sql.NullTime{
+		Time: time.Now(),
+		Valid: true,
+	}
+
+	err = service.userService.UpdateUser(user)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.otpService.DeleteOtp(otp)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

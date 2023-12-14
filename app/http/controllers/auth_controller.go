@@ -202,3 +202,47 @@ func (controller *AuthController) ResetPassword(c *fiber.Ctx) error {
 		"errors":  nil,
 	})
 }
+
+func (controller *AuthController) ResendEmailVerification(c *fiber.Ctx) error {
+	c.Accepts(constants.JsonContentType)
+
+	authenticatedUser := c.Locals("user").(*models.User)
+
+	if err := controller.authService.ResendEmailVerification(authenticatedUser); err != nil {
+		return err
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "We have sent you an otp to your email!",
+		"data":    nil,
+		"errors":  nil,
+	})
+}
+
+func (controller *AuthController) VerifyEmail(c *fiber.Ctx) error {
+	c.Accepts(constants.JsonContentType)
+
+	verifyEmailRequest := new(requests.VerifyEmailRequest)
+
+	if err := c.BodyParser(verifyEmailRequest); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, constants.ErrorRequestBodyNotValid)
+	}
+
+	if err := verifyEmailRequest.Validate(); err != nil {
+		return exception.NewValidationError(err, verifyEmailRequest)
+	}
+
+	user, err := controller.authService.VerifyEmail(verifyEmailRequest)
+
+	if err != nil {
+		return err
+	}
+
+	c.Locals("user", user)
+
+	return c.JSON(fiber.Map{
+		"message": "Email has been verified!",
+		"data":    nil,
+		"errors":  nil,
+	})
+}

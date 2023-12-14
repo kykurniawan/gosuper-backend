@@ -10,4 +10,7 @@ var (
 
 	//go:embed mail_templates/password_changed_notification.html
 	PasswordChangedNotificationTemplate string
+
+	//go:embed mail_templates/email_verification_otp.html
+	EmailVerificationOtpTemplate string
 )

@@ -45,3 +45,8 @@ type ResetPasswordRequest struct {
 	Otp      string `json:"otp" validate:"required"`
 	Password string `json:"password" validate:"required,min=8"`
 }
+
+type VerifyEmailRequest struct {
+	BaseRequest
+	Otp string `json:"otp" validate:"required"`
+}

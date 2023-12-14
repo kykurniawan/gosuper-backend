@@ -71,3 +71,7 @@ func (service *OtpService) ValidateOtp(otpType string, code string) (*models.Otp
 
 	return otp, nil
 }
+
+func (service *OtpService) DeleteOtp(otp *models.Otp) error {
+	return service.otpRepository.Delete(otp)
+}

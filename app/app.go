@@ -62,8 +62,23 @@ func (app *App) registerRoutes(api fiber.Router) {
 	v1.Get("/auth/user", middlewares.Authenticate(authService), authController.User).Name("auth.user")
 	v1.Post("/auth/forgot-password", authController.ForgotPassword).Name("auth.forgot-password")
 	v1.Post("/auth/reset-password", authController.ResetPassword).Name("auth.reset-password")
+	v1.Post(
+		"/auth/resend-email-verification",
+		middlewares.Authenticate(authService),
+		authController.ResendEmailVerification,
+	).Name("auth.resend-email-verification")
+	v1.Post(
+		"/auth/verify-email",
+		middlewares.Authenticate(authService),
+		authController.VerifyEmail,
+	).Name("auth.verify-email")
 
-	v1.Get("/users", middlewares.Authenticate(authService), userController.Index).Name("users.index")
+	v1.Get(
+		"/users",
+		middlewares.Authenticate(authService),
+		middlewares.Verified(authService),
+		userController.Index,
+	).Name("users.index")
 }
 
 func (app *App) runQueueWorker() {
